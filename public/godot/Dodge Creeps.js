@@ -896,6 +896,7 @@ export const Engine = (function () {
 	// Closure compiler exported static methods.
 	SafeEngine['load'] = Engine.load;
 	SafeEngine['unload'] = Engine.unload;
+	SafeEngine.prototype['startGame'] = Engine.prototype.startGame
 
 	// Feature-detection utilities.
 	SafeEngine['isWebGLAvailable'] = Features.isWebGLAvailable;
