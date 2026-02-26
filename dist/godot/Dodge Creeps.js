@@ -897,7 +897,8 @@ export const Engine = (function () {
 	SafeEngine['load'] = Engine.load;
 	SafeEngine['unload'] = Engine.unload;
 
-	SafeEngine.prototype['startGame'] = Engine.prototype.startGame
+	SafeEngine.prototype.startGame = Engine.prototype.startGame
+	SafeEngine.prototype.requestQuit = Engine.prototype.requestQuit
 
 	// Feature-detection utilities.
 	SafeEngine['isWebGLAvailable'] = Features.isWebGLAvailable;
