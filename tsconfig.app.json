@@ -10,7 +10,6 @@
       "@godot/*": ["./public/godot/*"]
     },
 
-    "allowJs": true,
-    "checkJs": false
+    "allowJs": true
   }
 }

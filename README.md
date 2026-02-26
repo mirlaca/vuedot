@@ -1,42 +1,78 @@
-# vuedot
+# Vuedot
 
-This template should help get you started developing with Vue 3 in Vite.
+An example project showing the integration of a Godot 4.6 HTML export into a Vue 3.5.x SPA (to use in combination with TypeScript).
 
-## Recommended IDE Setup
+Live here: https://mirlaca.github.io/vuedot/dist/#/
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## Key requirements found so far...
 
-## Recommended Browser Setup
+1. The generated engine, service worker, game package files, etc., should be loaded from the `public` folder
+2. Loading and running the game within a View implies importing the main JS file from `public`. In order to limit the scope, this project includes an alias for the `public/godot`:
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
+```typescript
+// @ vite.config.ts
+resolve: {
+    alias: {
+      '@godot': fileURLToPath(new URL('./public/godot', import.meta.url)),
+      ...
 ```
 
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
+```json
+// @ tsconfig.app.json
+"compilerOptions": {
+  "paths": {
+    "@godot/*": ["./public/godot/*"],
+    ...
+}
 ```
 
-### Type-Check, Compile and Minify for Production
+So that the game can be imported in the View as, e.g.,
 
-```sh
-npm run build
+```typescript
+<script setup lang="ts">
+import { Engine } from '@godot/Dodge Creeps'
+...
 ```
+
+3. When using TS, gotta also allow the engine's JS in the config:
+
+```json
+// @ tsconfig.app.json
+"compilerOptions": {
+  ...
+  "allowJs": true
+```
+
+4. Furthermore, we have to add the missing `export` for `Engine` to enable it in TS:
+
+```javascript
+// @ /godot/Dodge Creeps.js:~638
+export const Engine = (function () {
+  ...
+```
+
+5. Last but not least, expose the `startGame` and `requestQuit` methods (in the `SafeEngine` wrapper class) to start/quit the game when the View gets mounted/unmounted:
+
+```javascript
+// @ /godot/Dodge Creeps.js:~899
+SafeEngine.prototype.startGame = Engine.prototype.startGame
+SafeEngine.prototype.requestQuit = Engine.prototype.requestQuit
+```
+
+## Caveats
+
+### `requestQuit`
+
+'Requesting to quit' shows throws expections particularly when the game has audio:
+
+> godot can't access property `currentTime` `GodotAudio.ctx` is `null`
+
+which breaks the game's disposal, and seems to be tied to a design issue.
+
+Also, some other random errors such as
+
+> ERROR: Pages in use exist at exit in PagedAllocator: N16WorkerThreadPool5GroupE
+
+which origin I ignore, although they don't interrupt the disposal, apparently freeeing the game's memory when navigating away from it's container View (as expected):
+
+![Memory dealocation screencap](/_img//memory_deallocation.png)

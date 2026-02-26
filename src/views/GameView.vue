@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, onUnmounted, ref } from 'vue';
 import { Engine } from '@godot/Dodge Creeps'
 
 const GODOT_CONFIG = {
@@ -10,9 +10,9 @@ const GODOT_CONFIG = {
   fileSizes: { "Dodge Creeps.pck": 3525532, "Dodge Creeps.wasm": 35740641 },
   focusCanvas: true,
   godotPoolSize: 4,
-  serviceWorker: "Dodge Creeps.service.worker.js"
 }
-let engine = new Engine(GODOT_CONFIG)
+
+const engine = new Engine(GODOT_CONFIG)
 const isLoading = ref(true)
 
 onMounted(async () => {
@@ -21,8 +21,12 @@ onMounted(async () => {
   isLoading.value = false
 })
 
+onBeforeUnmount(() => {
+  engine.requestQuit()
+})
+
 onUnmounted(() => {
-  // TODO: stop the game
+  Engine.unload()
 })
 </script>
 
@@ -31,4 +35,4 @@ onUnmounted(() => {
   <canvas id="canvas"></canvas>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped></style>
